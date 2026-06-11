@@ -1,7 +1,7 @@
 const { Pool } = require('pg');
 const { v4: uuidv4 } = require('uuid');
-const path = require('path');
-const fs   = require('fs');
+const nodePath = require('path');
+const fs = require('fs');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -27,14 +27,13 @@ async function initDB() {
       match_id TEXT PRIMARY KEY, score1 INTEGER, score2 INTEGER
     );
   `);
-  await pool.query(`
-    INSERT INTO config (key, value) VALUES ('admin_pin', '0000')
-    ON CONFLICT (key) DO NOTHING;
-  `);
+  await pool.query(
+    `INSERT INTO config (key, value) VALUES ('admin_pin', '0000') ON CONFLICT (key) DO NOTHING`
+  );
 }
 
 function loadMatches() {
-  const data = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'matches.json'), 'utf8'));
+  const data = JSON.parse(fs.readFileSync(nodePath.join(__dirname, '..', 'matches.json'), 'utf8'));
   return data.matches
     .map((m, i) => ({ ...m, id: String(m.num !== undefined ? m.num : i) }))
     .sort((a, b) => (a.date || '') < (b.date || '') ? -1 : 1);
@@ -55,7 +54,6 @@ async function getAdminPin() {
   return r.rows[0]?.value || '0000';
 }
 
-// parse body for vercel serverless
 function parseBody(req) {
   return new Promise((resolve) => {
     if (req.body && typeof req.body === 'object') return resolve(req.body);
@@ -67,23 +65,31 @@ function parseBody(req) {
   });
 }
 
+function getPath(req) {
+  // vercel rewrite passes path as query param: /api/index.js?path=participants
+  // or path might be like "matches/5/result"
+  const qs = req.url.split('?')[1] || '';
+  const params = new URLSearchParams(qs);
+  const p = params.get('path') || '';
+  return '/' + p;
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,x-admin-pin,x-participant-pin');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  try {
-    await initDB();
-  } catch (e) {
+  try { await initDB(); } catch (e) {
     console.error('initDB error:', e.message);
     return res.status(500).json({ error: 'DB error: ' + e.message });
   }
 
   const body = await parseBody(req);
-  // strip /api prefix and query string
-  const url = (req.url || '').replace(/^\/api/, '').replace(/\?.*$/, '');
+  const url = getPath(req);
   const method = req.method;
+
+  console.log(method, url);
 
   try {
 
@@ -185,7 +191,7 @@ module.exports = async function handler(req, res) {
         myBets.forEach(b => {
           const r = resMap[b.match_id];
           const pts = r ? calcScore(b.score1, b.score2, r.score1, r.score2) : 0;
-          points += pts; if (pts===3) exact++; if (pts===1) outcome++;
+          points += pts; if (pts === 3) exact++; if (pts === 1) outcome++;
         });
         return { id: p.id, name: p.name, points, exact, outcome, betted: myBets.length };
       });
@@ -224,7 +230,7 @@ module.exports = async function handler(req, res) {
     return res.status(404).json({ error: 'Rota não encontrada: ' + url });
 
   } catch (e) {
-    console.error('handler error:', e.message, e.stack);
+    console.error('handler error:', e.message);
     return res.status(500).json({ error: e.message });
   }
 };
