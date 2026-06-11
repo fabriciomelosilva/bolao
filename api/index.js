@@ -86,7 +86,8 @@ module.exports = async function handler(req, res) {
   }
 
   const body = await parseBody(req);
-  const url = getPath(req);
+  // with @vercel/node routes, req.url is the original path e.g. /api/participants
+  const url = (req.url || "").replace(/^\/api/, "").replace(/\?.*/,"");
   const method = req.method;
 
   console.log(method, url);
