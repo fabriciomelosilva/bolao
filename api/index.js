@@ -39,6 +39,11 @@ function loadMatches() {
     .sort((a, b) => (a.date || '') < (b.date || '') ? -1 : 1);
 }
 
+function isLocked(match) {
+  if (!match.datetime) return false;
+  return new Date() >= new Date(match.datetime);
+}
+
 function calcScore(b1, b2, s1, s2) {
   if (s1 === null || s2 === null) return 0;
   b1 = parseInt(b1); b2 = parseInt(b2);
@@ -100,7 +105,11 @@ module.exports = async function handler(req, res) {
       const { rows } = await pool.query('SELECT match_id, score1, score2 FROM results');
       const resMap = {};
       rows.forEach(r => { resMap[r.match_id] = { score1: r.score1, score2: r.score2 }; });
-      return res.status(200).json(matches.map(m => ({ ...m, result: resMap[m.id] || null })));
+      return res.status(200).json(matches.map(m => ({
+        ...m,
+        result: resMap[m.id] || null,
+        locked: isLocked(m)
+      })));
     }
 
     // PUT /matches/:id/result
@@ -170,6 +179,13 @@ module.exports = async function handler(req, res) {
       const p = await pool.query('SELECT pin FROM participants WHERE id=$1', [participantId]);
       if (!p.rows.length) return res.status(404).json({ error: 'Participante não encontrado' });
       if (p.rows[0].pin !== String(pin)) return res.status(401).json({ error: 'PIN incorreto' });
+
+      // Block bets once the match has started
+      const match = loadMatches().find(m => m.id === String(matchId));
+      if (match && isLocked(match)) {
+        return res.status(403).json({ error: 'As apostas para este jogo já foram encerradas' });
+      }
+
       const id = uuidv4();
       await pool.query(
         `INSERT INTO bets (id,participant_id,match_id,score1,score2) VALUES ($1,$2,$3,$4,$5)

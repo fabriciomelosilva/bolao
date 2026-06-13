@@ -548,6 +548,12 @@ function fmtDate(dateStr) {
   return d.toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'short' });
 }
 
+function fmtTime(datetimeStr) {
+  if (!datetimeStr) return '';
+  var d = new Date(datetimeStr);
+  return d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', timeZone:'America/Fortaleza' });
+}
+
 function getDateGroups() {
   var seen = {}, groups = ['Todos'];
   allMatches.forEach(function(m) {
@@ -639,7 +645,7 @@ function renderJogos() {
 
       var phase = m.group || m.round.replace(/Matchday \d+/, '').trim() || m.round;
       return '<div class="mc">'
-        +'<div class="mc-head"><span class="mc-phase">'+(phase||m.round)+'</span><span class="mc-date">'+(m.ground||'')+'</span></div>'
+        +'<div class="mc-head"><span class="mc-phase">'+(phase||m.round)+'</span><span class="mc-date">'+fmtTime(m.datetime)+(m.ground?' · '+m.ground:'')+'</span></div>'
         +'<div class="mc-body">'
         +'<div class="team-l"><span class="tflag">'+fl(m.team1)+'</span><span class="tname">'+tn(m.team1)+'</span></div>'
         +scoreHtml
@@ -709,6 +715,21 @@ function renderApostas() {
         +'</div>';
     }
 
+    if (m.locked) {
+      var lockScore = myBet
+        ? '<div class="sc"><div class="sbox">'+myBet.score1+'</div><span class="ssep">:</span><div class="sbox">'+myBet.score2+'</div></div>'
+        : '<div class="sc"><div class="sbox" style="opacity:.3">–</div><span class="ssep">:</span><div class="sbox" style="opacity:.3">–</div></div>';
+      return '<div class="arow" style="opacity:.65">'
+        +'<div class="ateam-l">'+fl(m.team1)+' '+tn(m.team1)+'</div>'
+        +lockScore
+        +'<div class="ateam-r">'+tn(m.team2)+' '+fl(m.team2)+'</div>'
+        +'<div class="aright">'
+        +'<span class="adate">'+dateStr+' '+fmtTime(m.datetime)+(m.group?' · '+m.group:'')+'</span>'
+        +'<span class="done-badge">Apostas encerradas</span>'
+        +'</div>'
+        +'</div>';
+    }
+
     return '<div class="arow">'
       +'<div class="ateam-l">'+fl(m.team1)+' '+tn(m.team1)+'</div>'
       +'<div class="sc">'
@@ -718,7 +739,7 @@ function renderApostas() {
       +'</div>'
       +'<div class="ateam-r">'+tn(m.team2)+' '+fl(m.team2)+'</div>'
       +'<div class="aright">'
-      +'<span class="adate">'+dateStr+(m.group?' · '+m.group:'')+'</span>'
+      +'<span class="adate">'+dateStr+' '+fmtTime(m.datetime)+(m.group?' · '+m.group:'')+'</span>'
       +'<div style="display:flex;align-items:center;gap:6px">'
       +'<button class="btn-bet'+(myBet?' upd':'')+'" onclick="saveBet(\''+m.id+'\')">'+(myBet?'Atualizar':'Apostar')+'</button>'
       +(myBet?'<span class="asaved">'+myBet.score1+'–'+myBet.score2+'</span>':'')
@@ -737,7 +758,16 @@ function saveBet(matchId) {
     {participantId:session.id, matchId:matchId, score1:parseInt(s1), score2:parseInt(s2)},
     {'x-participant-pin':session.pin}
   ).then(function(r) {
-    if (r.error) { toast(r.error,'err'); return; }
+    if (r.error) {
+      toast(r.error,'err');
+      if (r.error.indexOf('encerradas') !== -1) {
+        apiFetch('GET','/api/matches').then(function(m){
+          allMatches = Array.isArray(m) ? m : allMatches;
+          renderApostas();
+        });
+      }
+      return;
+    }
     apiFetch('GET','/api/bets').then(function(bets){
       allBets = Array.isArray(bets) ? bets : allBets;
       toast('Aposta salva');
