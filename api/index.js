@@ -3,10 +3,14 @@ const { v4: uuidv4 } = require('uuid');
 const nodePath = require('path');
 const fs = require('fs');
 
+const dbUrl = process.env.DATABASE_URL || '';
+const isLocal = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  connectionString: dbUrl,
+  ssl: isLocal ? false : { rejectUnauthorized: false }
 });
+
 
 async function initDB() {
   await pool.query(`
@@ -28,7 +32,7 @@ async function initDB() {
     );
   `);
   await pool.query(
-    `INSERT INTO config (key, value) VALUES ('admin_pin', '0000') ON CONFLICT (key) DO NOTHING`
+    `INSERT INTO config (key, value) VALUES ('admin_pin', '2504') ON CONFLICT (key) DO NOTHING`
   );
 }
 
