@@ -1462,7 +1462,8 @@
 
     function calcScore(bet, result) {
       if (!result || result.score1 === null || result.score2 === null) return 0;
-      var s1 = +result.score1, s2 = +result.score2, b1 = +bet.score1, b2 = +bet.score2;
+      var s1 = parseInt(result.score1), s2 = parseInt(result.score2);
+      var b1 = parseInt(bet.score1), b2 = parseInt(bet.score2);
       if (isNaN(b1) || isNaN(b2)) return 0;
       if (b1 === s1 && b2 === s2) return 3;
       var sign = function (x) { return x > 0 ? 1 : x < 0 ? -1 : 0; };
@@ -1503,7 +1504,8 @@
 
           var scoreHtml = hasResult
             ? '<div class="sc"><div class="sbox">' + m.result.score1 + '</div><span class="ssep">:</span><div class="sbox">' + m.result.score2 + '</div></div>'
-            : '<div class="sc"><input class="sinput" type="number" min="0" max="20" placeholder="–" id="r1-' + m.id + '"><span class="ssep">:</span><input class="sinput" type="number" min="0" max="20" placeholder="–" id="r2-' + m.id + '"></div>';
+            : '<div class="sc"><input class="sinput" type="number" min="0" max="20" placeholder="–" id="r1-' + m.id + '"' + (isAdmin ? '' : ' disabled') + '><span class="ssep">:</span><input class="sinput" type="number" min="0" max="20" placeholder="–" id="r2-' + m.id + '"' + (isAdmin ? '' : ' disabled') + '></div>';
+
 
           var actHtml = '';
           if (isAdmin) {

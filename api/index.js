@@ -3,8 +3,9 @@ const { v4: uuidv4 } = require('uuid');
 const nodePath = require('path');
 const fs = require('fs');
 
-const dbUrl = process.env.DATABASE_URL || '';
+const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || '';
 const isLocal = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
+
 
 const pool = new Pool({
   connectionString: dbUrl,
