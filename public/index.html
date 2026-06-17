@@ -704,10 +704,20 @@ function loadApostas() {
   Promise.all([apiFetch('GET','/api/matches'), apiFetch('GET','/api/bets')]).then(function(res) {
     allMatches = Array.isArray(res[0]) ? res[0] : [];
     allBets    = Array.isArray(res[1]) ? res[1] : [];
-    // reset filter to Todos on fresh load so dates show correctly
-    apostasFilter = 'Todos';
+
+    var todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Fortaleza' });
+    var dates = getDateGroups().filter(function(g) { return g !== 'Todos'; });
+    var found = dates.find(function(d) { return d === todayStr; });
+    if (!found) found = dates.find(function(d) { return d >= todayStr; }) || dates[dates.length - 1];
+    if (found) apostasFilter = found;
+
     renderApostasFilters();
     renderApostas();
+
+    setTimeout(function() {
+      var btn = document.querySelector('#apostas-filters .fbtn.on');
+      if (btn) btn.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+    }, 100);
   });
 }
 
