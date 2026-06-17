@@ -584,8 +584,25 @@ function loadJogos() {
     allMatches      = Array.isArray(results[0]) ? results[0] : [];
     allBets         = Array.isArray(results[1]) ? results[1] : [];
     allParticipants = Array.isArray(results[2]) ? results[2] : [];
+
+    // Auto-select today or the nearest upcoming match date
+    var todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Fortaleza' }); // YYYY-MM-DD
+    var dates = getDateGroups().filter(function(g) { return g !== 'Todos'; });
+    var found = dates.find(function(d) { return d === todayStr; });
+    if (!found) {
+      // pick nearest future date, or last past date if all have passed
+      found = dates.find(function(d) { return d >= todayStr; }) || dates[dates.length - 1];
+    }
+    if (found) jogosFilter = found;
+
     renderJogosFilters();
     renderJogos();
+
+    // Scroll the active filter button into view
+    setTimeout(function() {
+      var btn = document.querySelector('#jogos-filters .fbtn.on');
+      if (btn) btn.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+    }, 100);
   });
 }
 
