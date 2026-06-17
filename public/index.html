@@ -78,7 +78,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 28px 16px; }
 .mc-body { padding: 12px 16px; display: grid; grid-template-columns: 1fr 110px 1fr; gap: 8px; align-items: center; }
 .team-l { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 .team-r { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
-.tflag { font-size: 1.4rem; line-height: 1; }
+.tflag { line-height: 1; display:flex; align-items:center; }
 .tname { font-family: 'Oswald', sans-serif; font-size: 0.95rem; font-weight: 600; }
 .sc { display: flex; gap: 5px; align-items: center; justify-content: center; }
 .sbox { background: var(--dark3); border: 1px solid var(--dark4); border-radius: 6px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-family: 'Oswald', sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--gold); }
@@ -185,7 +185,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 28px 16px; }
   /* match cards */
   .mc-body { grid-template-columns: 1fr 90px 1fr; gap: 4px; padding: 10px 10px; }
   .tname { font-size: 0.8rem; }
-  .tflag { font-size: 1.1rem; }
+  
   .sbox { width: 34px; height: 34px; font-size: 1.1rem; }
   .sinput { width: 34px; height: 34px; font-size: 1rem; }
   .mc-foot { padding: 8px 10px; gap: 4px; }
@@ -361,22 +361,29 @@ var NAMES = {
   'Colombia':'Colômbia','England':'Inglaterra','Croatia':'Croácia',
   'Ghana':'Gana','Panama':'Panamá','Curaçao':'Curaçao',
 };
-var FLAGS = {
-  'Mexico':'🇲🇽','South Africa':'🇿🇦','South Korea':'🇰🇷','Czech Republic':'🇨🇿',
-  'Canada':'🇨🇦','Bosnia & Herzegovina':'🇧🇦','Qatar':'🇶🇦','Switzerland':'🇨🇭',
-  'Brazil':'🇧🇷','Morocco':'🇲🇦','Haiti':'🇭🇹','Scotland':'🏴󠁧󠁢󠁳󠁣󠁴󠁿',
-  'USA':'🇺🇸','Paraguay':'🇵🇾','Australia':'🇦🇺','Turkey':'🇹🇷',
-  'Germany':'🇩🇪','Ivory Coast':'🇨🇮','Ecuador':'🇪🇨','Netherlands':'🇳🇱',
-  'Japan':'🇯🇵','Sweden':'🇸🇪','Tunisia':'🇹🇳','Belgium':'🇧🇪',
-  'Egypt':'🇪🇬','Iran':'🇮🇷','New Zealand':'🇳🇿','Spain':'🇪🇸',
-  'Cape Verde':'🇨🇻','Saudi Arabia':'🇸🇦','Uruguay':'🇺🇾','France':'🇫🇷',
-  'Senegal':'🇸🇳','Iraq':'🇮🇶','Norway':'🇳🇴','Argentina':'🇦🇷',
-  'Algeria':'🇩🇿','Austria':'🇦🇹','Jordan':'🇯🇴','Portugal':'🇵🇹',
-  'DR Congo':'🇨🇩','Uzbekistan':'🇺🇿','Colombia':'🇨🇴','England':'🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-  'Croatia':'🇭🇷','Ghana':'🇬🇭','Panama':'🇵🇦','Curaçao':'🏝️',
+// ISO codes for flagcdn.com
+var FLAG_CODES = {
+  'Mexico':'mx','South Africa':'za','South Korea':'kr','Czech Republic':'cz',
+  'Canada':'ca','Bosnia & Herzegovina':'ba','Qatar':'qa','Switzerland':'ch',
+  'Brazil':'br','Morocco':'ma','Haiti':'ht','Scotland':'gb-sct',
+  'USA':'us','Paraguay':'py','Australia':'au','Turkey':'tr',
+  'Germany':'de','Ivory Coast':'ci','Ecuador':'ec','Netherlands':'nl',
+  'Japan':'jp','Sweden':'se','Tunisia':'tn','Belgium':'be',
+  'Egypt':'eg','Iran':'ir','New Zealand':'nz','Spain':'es',
+  'Cape Verde':'cv','Saudi Arabia':'sa','Uruguay':'uy','France':'fr',
+  'Senegal':'sn','Iraq':'iq','Norway':'no','Argentina':'ar',
+  'Algeria':'dz','Austria':'at','Jordan':'jo','Portugal':'pt',
+  'DR Congo':'cd','Uzbekistan':'uz','Colombia':'co','England':'gb-eng',
+  'Croatia':'hr','Ghana':'gh','Panama':'pa','Curaçao':'cw',
 };
 function tn(t) { return NAMES[t] || t; }
-function fl(t) { return FLAGS[t] || ''; }
+function fl(t) {
+  var code = FLAG_CODES[t];
+  if (!code) return '';
+  return '<img src="https://flagcdn.com/24x18/'+code+'.png" '
+    +'srcset="https://flagcdn.com/48x36/'+code+'.png 2x" '
+    +'width="24" height="18" alt="'+t+'" style="vertical-align:middle;border-radius:2px">';
+}
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
 function toast(msg, type) {
