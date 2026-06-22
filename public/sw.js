@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bolao-unk-v4';
+const CACHE_NAME = 'bolao-unk-v5';
 const ASSETS = [
   '/',
   '/index.html',
