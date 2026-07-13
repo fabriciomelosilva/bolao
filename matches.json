@@ -1078,8 +1078,8 @@
       "num": 101,
       "date": "2026-07-14",
       "time": "14:00 UTC-5",
-      "team1": "TBD",
-      "team2": "TBD",
+      "team1": "France",
+      "team2": "Spain",
       "ground": "Dallas",
       "datetime": "2026-07-14T19:00:00Z"
     },
@@ -1088,8 +1088,8 @@
       "num": 102,
       "date": "2026-07-15",
       "time": "15:00 UTC-4",
-      "team1": "TBD",
-      "team2": "TBD",
+      "team1": "England",
+      "team2": "Argentina",
       "ground": "Atlanta",
       "datetime": "2026-07-15T19:00:00Z"
     },
