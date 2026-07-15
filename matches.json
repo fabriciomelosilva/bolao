@@ -1098,8 +1098,8 @@
       "num": 103,
       "date": "2026-07-18",
       "time": "17:00 UTC-4",
-      "team1": "TBD",
-      "team2": "TBD",
+      "team1": "France",
+      "team2": "England",
       "ground": "Miami",
       "datetime": "2026-07-18T21:00:00Z"
     },
@@ -1108,8 +1108,8 @@
       "num": 104,
       "date": "2026-07-19",
       "time": "15:00 UTC-4",
-      "team1": "TBD",
-      "team2": "TBD",
+      "team1": "Spain",
+      "team2": "Argentina",
       "ground": "New York",
       "datetime": "2026-07-19T19:00:00Z"
     }
