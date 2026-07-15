@@ -44,14 +44,25 @@ function isLocked(match) {
   return new Date() >= new Date(match.datetime);
 }
 
-function calcScore(b1, b2, s1, s2) {
+// Identifica se uma partida é a Final, com base no campo "round" do matches.json
+function isFinalMatch(match) {
+  return !!match && String(match.round || '').trim().toLowerCase() === 'final';
+}
+
+// EXACT_SCORE_POINTS: pontos normais por acertar o placar exato.
+// EXACT_SCORE_POINTS_FINAL: pontos por acertar o placar exato APENAS na Final.
+const EXACT_SCORE_POINTS = 3;
+const EXACT_SCORE_POINTS_FINAL = 80;
+const OUTCOME_POINTS = 1;
+
+function calcScore(b1, b2, s1, s2, isFinal = false) {
   if (s1 === null || s2 === null) return 0;
   b1 = parseInt(b1); b2 = parseInt(b2);
   s1 = parseInt(s1); s2 = parseInt(s2);
   if (isNaN(b1) || isNaN(b2)) return 0;
-  if (b1 === s1 && b2 === s2) return 3;
+  if (b1 === s1 && b2 === s2) return isFinal ? EXACT_SCORE_POINTS_FINAL : EXACT_SCORE_POINTS;
   const sign = x => x > 0 ? 1 : x < 0 ? -1 : 0;
-  return sign(b1 - b2) === sign(s1 - s2) ? 1 : 0;
+  return sign(b1 - b2) === sign(s1 - s2) ? OUTCOME_POINTS : 0;
 }
 
 async function getAdminPin() {
@@ -202,13 +213,22 @@ module.exports = async function handler(req, res) {
       const results = await pool.query('SELECT match_id, score1, score2 FROM results');
       const resMap  = {};
       results.rows.forEach(r => { resMap[r.match_id] = r; });
+
+      // Mapa de partidas para saber qual delas é a Final (campo "round" do matches.json)
+      const matches = loadMatches();
+      const matchMap = {};
+      matches.forEach(m => { matchMap[m.id] = m; });
+
       const ranking = parts.rows.map(p => {
         const myBets = bets.rows.filter(b => b.participant_id === p.id);
         let points = 0, exact = 0, outcome = 0;
         myBets.forEach(b => {
           const r = resMap[b.match_id];
-          const pts = r ? calcScore(b.score1, b.score2, r.score1, r.score2) : 0;
-          points += pts; if (pts === 3) exact++; if (pts === 1) outcome++;
+          const match = matchMap[b.match_id];
+          const pts = r ? calcScore(b.score1, b.score2, r.score1, r.score2, isFinalMatch(match)) : 0;
+          points += pts;
+          if (pts === EXACT_SCORE_POINTS || pts === EXACT_SCORE_POINTS_FINAL) exact++;
+          if (pts === OUTCOME_POINTS) outcome++;
         });
         return { id: p.id, name: p.name, points, exact, outcome, betted: myBets.length };
       });
